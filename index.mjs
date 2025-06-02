@@ -137,7 +137,7 @@ async function createClientApp(client, packageManager) {
       break;
     case "Angular":
       execSync(
-        `npx -p @angular/cli ng new client --directory=client --skip-install --ssr=true`,
+        `npx -p @angular/cli@17.3.8 ng new client --directory=client --skip-install --ssr=true`,
         { stdio: "inherit" }
       );
       moveAppToAppsFolder("client");
