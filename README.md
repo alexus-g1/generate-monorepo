@@ -1,4 +1,4 @@
-# Foobar
+# generate-monorepo
 
 generate-monorepo is a tool for generating web monorepo projects with NodeJS
 
