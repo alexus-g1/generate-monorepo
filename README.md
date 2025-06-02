@@ -1,4 +1,4 @@
-# Foobar
+# generate-monorepo
 
 generate-monorepo is a tool for generating web monorepo projects with NodeJS
 
@@ -8,6 +8,8 @@ Use the package manager [npm] to install generate-monorepo or use [npx] to execu
 
 ```bash
 npm install -g generate-monorepo
+
+npx generate-monorepo
 ```
 
 or
