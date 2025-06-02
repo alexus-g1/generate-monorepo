@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import inquirer from "inquirer";
 import { execSync } from "child_process";
 import fs from "fs";
@@ -27,10 +29,24 @@ async function main() {
       name: "name",
       type: "input",
       message: "Выберите название для проекта",
+      validate(input) {
+        if (!input || input.trim() === "") {
+          return "Имя для проекта не может быть пустым";
+        }
+        const fullPath = path.isAbsolute(input)
+          ? input
+          : path.resolve(process.cwd(), input);
+        if (fs.existsSync(fullPath)) {
+          return "указанная директория уже существует";
+        }
+        return true;
+      },
     },
   ]);
 
-  const projectDir = name;
+  const projectDir = path.isAbsolute(name)
+    ? name
+    : path.resolve(process.cwd(), name);
   fs.mkdirSync(projectDir);
   process.chdir(projectDir);
   if (packageManager == "pnpm") {
@@ -47,15 +63,24 @@ async function main() {
   pkgJson.private = true;
   pkgJson.workspaces = ["apps/*"];
   pkgJson.dependencies = { concurrently: "^9.1.2" };
-  pkgJson.scripts = {
-    dev: `concurrently \"${packageManager} ${
-      packageManager == "pnpm" ? "--dir" : "--cwd"
-    } apps/client ${
-      client == "Angular" ? "ng serve" : "run dev"
-    }\"  \"${packageManager} ${
-      packageManager == "pnpm" ? "--dir" : "--cwd"
-    } apps/server run start:dev\"`,
-  };
+  if (packageManager === "npm") {
+    pkgJson.scripts = {
+      dev: `concurrently \"npm ${
+        client == "Angular" ? "ng serve" : "run dev"
+      } -w=client\" \"npm run start:dev -w=server`,
+    };
+  } else {
+    pkgJson.scripts = {
+      dev: `concurrently \"${packageManager} ${
+        packageManager == "pnpm" ? "--dir" : "--cwd"
+      } apps/client ${
+        client == "Angular" ? "ng serve" : "run dev"
+      }\"  \"${packageManager} ${
+        packageManager == "pnpm" ? "--dir" : "--cwd"
+      } apps/server run start:dev\"`,
+    };
+  }
+
   fs.writeFileSync(pkgJsonPath, JSON.stringify(pkgJson, null, 2));
 
   fs.mkdirSync("apps");
@@ -91,7 +116,7 @@ async function createClientApp(client, packageManager) {
       break;
     case "Angular":
       execSync(
-        `npx -p @angular/cli ng new client --directory=client --skip-install`,
+        `npx -p @angular/cli ng new client --directory=client --skip-install --ssr=true`,
         { stdio: "inherit" }
       );
       moveAppToAppsFolder("client");
@@ -150,9 +175,12 @@ async function createServerApp(server, packageManager) {
       );
       break;
     case "NestJS":
-      execSync(`npx @nestjs/cli new server --skip-install --directory=server`, {
-        stdio: "inherit",
-      });
+      execSync(
+        `npx @nestjs/cli new server --skip-install --directory=server --package-manager=${packageManager}`,
+        {
+          stdio: "inherit",
+        }
+      );
       moveAppToAppsFolder("server");
       enableCorsInNest(path.join("apps", "server"));
       addNestMessageEndpoint(path.join("apps", "server"));
