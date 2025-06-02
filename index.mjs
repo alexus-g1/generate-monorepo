@@ -65,19 +65,27 @@ async function main() {
   pkgJson.dependencies = { concurrently: "^9.1.2" };
   if (packageManager === "npm") {
     pkgJson.scripts = {
-      dev: `concurrently \"npm ${
-        client == "Angular" ? "ng serve" : "run dev"
-      } -w=client\" \"npm run start:dev -w=server`,
+      dev: `concurrently \" ${
+        client == "Angular"
+          ? "cd apps/client && ng serve"
+          : "npm run dev -w=client"
+      } \" \"npm run start:dev -w=server`,
+    };
+  } else if (packageManager === "pnpm") {
+    pkgJson.scripts = {
+      dev: `concurrently \" ${
+        client == "Angular"
+          ? "cd apps/client && ng serve"
+          : "pnpm --dir=apps/client run dev"
+      } \" \"pnpm --dir=apps/server run start:dev`,
     };
   } else {
     pkgJson.scripts = {
-      dev: `concurrently \"${packageManager} ${
-        packageManager == "pnpm" ? "--dir" : "--cwd"
-      } apps/client ${
-        client == "Angular" ? "ng serve" : "run dev"
-      }\"  \"${packageManager} ${
-        packageManager == "pnpm" ? "--dir" : "--cwd"
-      } apps/server run start:dev\"`,
+      dev: `concurrently \" ${
+        client == "Angular"
+          ? "cd apps/client && ng serve"
+          : "yarn --cwd=apps/client run dev"
+      } \" \"yarn --cwd=apps/server run start:dev`,
     };
   }
 
