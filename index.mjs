@@ -31,13 +31,17 @@ async function main() {
       message: "Выберите название для проекта",
       validate(input) {
         if (!input || input.trim() === "") {
-          return "Имя для проекта не может быть пустым";
+          return "Имя проекта не может быть пустым";
+        }
+        const invalidChars = /[^a-zA-Z0-9_\/\\.\-]/;
+        if (invalidChars.test(input)) {
+          return "Имя проекта может содержать только буквы, цифры, дефис, подчёркивание и слеши";
         }
         const fullPath = path.isAbsolute(input)
           ? input
           : path.resolve(process.cwd(), input);
         if (fs.existsSync(fullPath)) {
-          return "указанная директория уже существует";
+          return "Указанная директория уже существует";
         }
         return true;
       },
@@ -95,6 +99,15 @@ async function main() {
 
   await createClientApp(client, packageManager);
   await createServerApp(server, packageManager);
+
+  console.log("📁 Структура проекта:");
+  console.log(`
+${name}/
+├── package.json
+├── apps/
+│   ├── client/ (${client})
+│   └── server/ (${server})
+`);
 
   console.log(
     "\n✅ Монорепозиторий успешно создан! Дальнейшие действия \ncd " +
