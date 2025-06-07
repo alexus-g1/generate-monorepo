@@ -33,7 +33,7 @@ async function main() {
         if (!input || input.trim() === "") {
           return "Имя проекта не может быть пустым";
         }
-        const invalidChars = /[^a-zA-Z0-9_\/\\.\-]/;
+        const invalidChars = /[^a-zA-Z0-9_:\/\\.\-]/;
         if (invalidChars.test(input)) {
           return "Имя проекта может содержать только буквы, цифры, дефис, подчёркивание и слеши";
         }
